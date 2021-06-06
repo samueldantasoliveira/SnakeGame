@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+</head>
+<body>
+    <canvas id="stage" height="400" width="400"></canvas>
+
+    <script>
+        var contTom = 60 // controle do tom
+        var velJogo = 80     // vel do jogo
+        
+        
+        window.onload = function(){ // Coisas que só vão carregar depois do html e css
+            
+            
+            var stage = document.getElementById('stage')  //acesso ao canvas
+            var ctx = stage.getContext("2d")              //Criação da tela
+            document.addEventListener("keydown", keyPush) //identificar a tecla
+            setInterval(game, velJogo)                         //Acessa a função game a cada 60 ms
+
+            const vel = 1
+
+            var vx = vy = 0     //posição x e y da boca da cobra
+            var px = py = 7     //velocidade x e y da cobra
+            var tp = 20         //tamanho das peças
+            var np = 20         //numero de peças
+            var ax = ay = 15    //posição y da fruta
+            
+            var trail = []      //rastro
+            tail = 5            //tamanho
+            
+
+
+            
+
+            function game(){
+                
+                //adicionando o movimento de x ou de y a posição da cobra
+                px += vx  
+                py += vy
+
+                //Se chegar a borda vai para o outro lado
+                if(px<0){
+                    px=np-1
+                }
+                if(px>np-1){
+                    px=0
+                }
+                if(py<0){
+                    py=np-1
+                }
+                if(py>np-1){
+                    py=0
+                }
+
+                //Pintando o fundo
+                ctx.fillStyle = "black"
+                ctx.fillRect(0, 0, stage.width, stage.height)
+
+                //Pintando a fruta
+                ctx.fillStyle = "red"
+                ctx.fillRect(ax*tp, ay*tp, tp, tp)
+
+                //pintando a cobra
+                ctx.fillStyle = "green"
+                for(var i = 0; i < trail.length; i++){//andando pelo vetor para pintar o rabo da cobra
+                    ctx.fillRect(trail[i].x*tp, trail[i].y*tp, tp-1, tp-1) // pinta o quadrado com 29px
+                    if(trail[i].x == px && trail[i].y == py){              // verifica se a cobra comeu o rabo
+                        //jogador perdeu
+                        contTom=60      //reseta o tom dos pontos
+                        velJogo=80      //reseta a vel
+                        if(tail!=5){    //verifica se o jogador morreu ou se apenas está no inicio
+                            //Som da morte
+                            let context = new AudioContext(),
+                            oscillator = context.createOscillator(),
+                            contextGain = context.createGain();
+
+                            oscillator.connect(contextGain);
+                            contextGain.connect(context.destination);
+
+                            oscillator.type = 'sawtooth' //escolhe o tipo de som
+                            oscillator.start(0);         //inicia o som
+                            contextGain.gain.exponentialRampToValueAtTime(
+                            0.00001, context.currentTime + 0.15) //para o Som após um tempo
+                        }
+                        vx = vy=0 //deixa a cobra parada novamente
+                        tail =5   //deixa a cobra pequena novamente
+                    }
+                }
+                //adiciona a posição atual da cabeça no vetor
+                trail.push({x:px, y:py})
+                while(trail.length> tail){
+                    trail.shift()  //remove a posição mais antiga
+                    
+                }
+
+                //verifica se a cobra está comendo a fruta
+                if(px==ax && py==ay){
+                    //Som de ponto
+                    let context = new AudioContext(),
+                    oscillator = context.createOscillator(),
+                    contextGain = context.createGain()
+
+                    oscillator.connect(contextGain)
+                    contextGain.connect(context.destination)
+                    oscillator.frequency.value = contTom     //escolhe o tom do som
+                    if(contTom>250)contTom=60                //se o tom for maior q 250 ele é resetado para 60
+                    contTom+=20                              //aumenta o tom
+                    oscillator.start(0)                      //inicia o som
+                    contextGain.gain.exponentialRampToValueAtTime(
+                    0.00001, context.currentTime + 1)        //para o som após algum tempo
+                    
+                    tail++                                   //incrementa o rabo
+                    velJogo-=5                               //incrementa a vel
+                    //escolhe um lugar aleatório para a fruta nascer
+                    ax = Math.floor(Math.random()*np)        
+                    ay = Math.floor(Math.random()*np)
+                    
+    
+                }
+                
+            }
+
+            //verifica que tecla está sendo apertada para mudar o movimento
+            function keyPush(event){
+                switch(event.keyCode){
+                    case 37: //left
+                    if(vx!=vel){
+                        vx= -vel
+                        vy=0
+                    }
+                        
+                    break
+
+                    case 38: //up
+                    if(vy!=vel){
+                        vx= 0
+                        vy= -vel
+                    }
+                        
+                    break
+
+                    case 39: //right
+                    if(vx!=-vel){
+                        vx= vel
+                        vy=0
+                    }
+                        
+                    break
+
+                    case 40: //down
+                    if(vy!=-vel){
+                        vx= 0
+                        vy= vel
+                    }
+                    break
+
+                    default:
+
+                        break
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
